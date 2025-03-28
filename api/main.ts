@@ -29,19 +29,6 @@ const COOKIE_OPTIONS = {
 
 const app = new Hono();
 
-// Solo para entornos de producción
-const PRODUCTION = Deno.env.get("ENVIRONMENT") === "production";
-
-app.use("*", async (c, next) => {
-  await next();
-
-  const csp = PRODUCTION
-    ? "default-src 'self'; script-src 'self'; style-src 'self' 'sha256-...'; img-src 'self' data:; font-src 'self'; frame-src 'none'"
-    : "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'; img-src 'self' data:; font-src 'self'; frame-src 'none'";
-
-  c.res.headers.set("Content-Security-Policy", csp);
-});
-
 app.get("/", (c) =>
   c.text("Bienvenido! Usa /auth/linkedin para iniciar sesión")
 );
