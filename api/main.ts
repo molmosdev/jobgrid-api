@@ -8,7 +8,7 @@ app.get("/auth/linkedin", async (c) => {
   const { data, error } = await config.database.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
-      redirectTo: "https://example.com/auth/linkedin/callback",
+      redirectTo: "https://api.jobgrid.app/auth/linkedin/callback",
     },
   });
 
@@ -20,6 +20,6 @@ app.get("/auth/linkedin", async (c) => {
   c.json({ data }, 200);
 });
 
-/* app.get("/auth/linkedin/callback", (c) => {}); */
+app.get("/auth/linkedin/callback", (c) => c.text("LinkedIn OAuth callback"));
 
 Deno.serve(app.fetch);
