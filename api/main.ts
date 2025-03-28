@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import config from "@config";
 
 const app = new Hono();
-app.get("/", (c) => c.text("Hello, World!"));
+app.get("/", (c) => c.text("Hello, World 2!"));
 
 app.get("/auth/linkedin", async (c) => {
   const { data, error } = await config.database.auth.signInWithOAuth({
