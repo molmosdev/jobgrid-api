@@ -13,13 +13,29 @@ app.get("/auth/linkedin", async (c) => {
   });
 
   if (error) {
-    console.error("Error during LinkedIn OAuth:", error);
+    console.error("Error durante LinkedIn OAuth:", error);
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  c.json({ data }, 200);
+  return c.redirect(data.url);
 });
 
-app.get("/auth/linkedin/callback", (c) => c.text("LinkedIn OAuth callback"));
+app.get("/auth/linkedin/callback", async (c) => {
+  const code = new URL(c.req.url).searchParams.get("code");
 
+  if (!code) {
+    return c.json({ error: "Código de autorización faltante" }, 400);
+  }
+
+  const { data, error } = await config.database.auth.exchangeCodeForSession(
+    code
+  );
+
+  if (error) {
+    console.error("Error en el callback:", error);
+    return c.json({ error: "Falló el intercambio de código" }, 500);
+  }
+
+  return c.json(data, 200);
+});
 Deno.serve(app.fetch);
