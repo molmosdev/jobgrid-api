@@ -7,9 +7,6 @@ app.get("/", (c) => c.text("Hello, World 2!"));
 app.get("/auth/linkedin", async (c) => {
   const { data, error } = await config.database.auth.signInWithOAuth({
     provider: "linkedin_oidc",
-    options: {
-      redirectTo: "https://api.jobgrid.app/auth/linkedin/callback",
-    },
   });
 
   if (error) {
