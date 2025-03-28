@@ -21,21 +21,31 @@ app.get("/auth/linkedin", async (c) => {
 });
 
 app.get("/auth/linkedin/callback", async (c) => {
-  /*   const code = new URL(c.req.url).searchParams.get("code");
+  // Obtener el código de autorización de la query string
+  const code = c.req.query("code");
 
   if (!code) {
     return c.json({ error: "Código de autorización faltante" }, 400);
   }
 
-  const { data, error } = await config.database.auth.exchangeCodeForSession(
-    code
-  );
+  try {
+    // Crear un cliente de Supabase en el servidor
+    const supabase = config.database.auth;
 
-  if (error) {
-    console.error("Error en el callback:", error);
-    return c.json({ error: "Falló el intercambio de código" }, 500);
-  } */
+    // Intercambiar el código por una sesión
+    const { data, error } = await supabase.exchangeCodeForSession(code);
 
-  return c.json(c.req, 200);
+    if (error) {
+      console.error("Error al intercambiar el código:", error);
+      return c.json({ error: "Falló el intercambio de código" }, 500);
+    }
+
+    // Redirigir al usuario a la URL deseada
+    return c.json(data, 200);
+  } catch (err) {
+    console.error("Error inesperado:", err);
+    return c.json({ error: "Ocurrió un error inesperado" }, 500);
+  }
 });
+
 Deno.serve(app.fetch);
