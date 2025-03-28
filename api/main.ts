@@ -21,7 +21,7 @@ app.get("/auth/linkedin", async (c) => {
 });
 
 app.get("/auth/linkedin/callback", async (c) => {
-  const code = new URL(c.req.url).searchParams.get("code");
+  /*   const code = new URL(c.req.url).searchParams.get("code");
 
   if (!code) {
     return c.json({ error: "Código de autorización faltante" }, 400);
@@ -34,8 +34,8 @@ app.get("/auth/linkedin/callback", async (c) => {
   if (error) {
     console.error("Error en el callback:", error);
     return c.json({ error: "Falló el intercambio de código" }, 500);
-  }
+  } */
 
-  return c.json(data, 200);
+  return c.json(c.req, 200);
 });
 Deno.serve(app.fetch);
