@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import config from "@config";
+import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 
 const app = new Hono();
 app.get("/", (c) => c.text("Hello, World 2!"));
@@ -17,30 +18,50 @@ app.get("/auth/linkedin", async (c) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
+  // Extraer el access_token de la URL (si está disponible)
+  const url = new URL(data.url);
+  const accessToken = url.searchParams.get("access_token");
+
+  if (accessToken) {
+    // Guardar el access_token en una cookie segura y temporal
+    setCookie(c, "access_token", accessToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 3600, // 1 hora
+      sameSite: "Strict",
+      path: "/",
+    });
+  }
+
   return c.redirect(data.url);
 });
 
 app.get("/auth/linkedin/callback", async (c) => {
-  // Obtener el código de autorización de la query string
-  const code = c.req.query("code");
+  // Recuperar el access_token desde la cookie
+  const accessToken = getCookie(c, "access_token");
 
-  if (!code) {
-    return c.json({ error: "Código de autorización faltante" }, 400);
+  if (!accessToken) {
+    return c.json({ error: "Access token faltante en la cookie" }, 400);
   }
 
   try {
-    // Crear un cliente de Supabase en el servidor
-    const supabase = config.database.auth;
-
-    // Intercambiar el código por una sesión
-    const { data, error } = await supabase.exchangeCodeForSession(code);
+    // Crear una sesión usando el access_token
+    const { data, error } = await config.database.auth.exchangeCodeForSession(
+      accessToken
+    );
 
     if (error) {
-      console.error("Error al intercambiar el código:", error);
-      return c.json({ error: "Falló el intercambio de código" }, 500);
+      console.error("Error al intercambiar el access_token:", error);
+      return c.json({ error: "Falló el intercambio de access_token" }, 500);
     }
 
-    // Redirigir al usuario a la URL deseada
+    // Eliminar la cookie después de usarla
+    deleteCookie(c, "access_token", {
+      path: "/",
+      secure: true,
+    });
+
+    // Redirigir al usuario a una página de éxito o devolver la sesión
     return c.json(data, 200);
   } catch (err) {
     console.error("Error inesperado:", err);
