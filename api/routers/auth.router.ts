@@ -7,5 +7,6 @@ const AuthRouter = new Hono();
 AuthRouter.get("/loginWithLinkedIn", AuthController.loginWithLinkedIn);
 AuthRouter.get("/startUserSession", AuthController.startUserSession);
 AuthRouter.get("/user", jwt, AuthController.getUser);
+AuthRouter.get("/logout", AuthController.logout);
 
 export default AuthRouter;
