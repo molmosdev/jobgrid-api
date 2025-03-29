@@ -39,6 +39,23 @@ class AuthController {
   static getUser(c: Context) {
     return c.json(c.get("user"), 200);
   }
+
+  static logout(c: Context) {
+    const token = c.req.query("access_token");
+
+    if (!token) {
+      return c.json({ message: "Access token is missing" }, 400);
+    }
+
+    setCookie(c, "access_token", "", {
+      httpOnly: true,
+      maxAge: -1,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return c.json({ message: "Session ended" }, 200);
+  }
 }
 
 export default AuthController;
