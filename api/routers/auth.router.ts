@@ -8,5 +8,9 @@ AuthRouter.get("/loginWithLinkedIn", AuthController.loginWithLinkedIn);
 AuthRouter.get("/startUserSession", AuthController.startUserSession);
 AuthRouter.get("/user", jwt, AuthController.getUser);
 AuthRouter.get("/logout", AuthController.logout);
+AuthRouter.post(
+  "/loginWithEmailAndPassword",
+  AuthController.loginWithEmailAndPassword
+);
 
 export default AuthRouter;

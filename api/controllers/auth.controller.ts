@@ -19,6 +19,33 @@ class AuthController {
     return c.redirect(data.url);
   }
 
+  static async loginWithEmailAndPassword(c: Context) {
+    const { email, password } = await c.req.json();
+
+    if (!email || !password) {
+      return c.json({ message: "Email and password are required" }, 400);
+    }
+
+    const { data, error } = await config.database.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Error during email/password login:", error);
+      return c.json({ error: "Authentication failed" }, 401);
+    }
+
+    setCookie(c, "access_token", data.session.access_token, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return c.json({ message: "Login successful" }, 200);
+  }
+
   static startUserSession(c: Context) {
     const token = c.req.query("access_token");
 
