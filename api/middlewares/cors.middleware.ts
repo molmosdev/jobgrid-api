@@ -7,7 +7,7 @@ import config from "@config";
  * @returns CORS middleware handler
  */
 export const cors = (): MiddlewareHandler => {
-  const allowedOrigins = config.production
+  const allowedOrigins = config.production === "true"
     ? ["https://www.jobgrid.app"]
     : ["http://localhost:4200"];
 

@@ -5,7 +5,7 @@ import Router from "./routers/index.ts";
 const app = new Hono();
 
 // CORS configuration
-app.use("/api/*", cors());
+app.use("*", cors());
 
 // Router
 app.route("/api/v1", Router);
