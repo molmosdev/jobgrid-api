@@ -13,7 +13,7 @@ const jwt: MiddlewareHandler = async (c: Context, next: Next) => {
     }
 
     // Verify the token
-    const { data, error } = await config.database.auth.getUser(token);
+    const { data, error } = await config.supabaseClient.auth.getUser(token);
 
     if (error || !data) {
       return c.json(

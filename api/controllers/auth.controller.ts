@@ -3,22 +3,6 @@ import config from "@config";
 import { setCookie } from "hono/cookie";
 
 class AuthController {
-  static async loginWithLinkedIn(c: Context) {
-    const { data, error } = await config.database.auth.signInWithOAuth({
-      provider: "linkedin_oidc",
-      options: {
-        redirectTo: Deno.env.get("LINKEDIN_REDIRECT_URI")!,
-      },
-    });
-
-    if (error) {
-      console.error("Error durante LinkedIn OAuth:", error);
-      return c.json({ error: "Authentication failed" }, 500);
-    }
-
-    return c.redirect(data.url);
-  }
-
   static async loginWithEmailAndPassword(c: Context) {
     const { email, password } = await c.req.json();
 
@@ -26,10 +10,12 @@ class AuthController {
       return c.json({ message: "Email and password are required" }, 400);
     }
 
-    const { data, error } = await config.database.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await config.supabaseClient.auth.signInWithPassword(
+      {
+        email,
+        password,
+      },
+    );
 
     if (error) {
       console.error("Error during email/password login:", error);
@@ -46,21 +32,50 @@ class AuthController {
     return c.json({ message: "Login successful" }, 200);
   }
 
-  static startUserSession(c: Context) {
-    const token = c.req.query("access_token");
-
-    if (!token) {
-      return c.json({ message: "Access token is missing" }, 400);
-    }
-
-    setCookie(c, "access_token", token, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60,
-      sameSite: "none",
-      secure: true,
+  static async logInWithLinkedIn(c: Context) {
+    const { data, error } = await config.supabaseClient.auth.signInWithOAuth({
+      provider: "linkedin_oidc",
+      options: {
+        redirectTo: Deno.env.get("LINKEDIN_REDIRECT_URI")!,
+      },
     });
 
-    return c.json({ message: "Session started" }, 200);
+    if (error) {
+      console.error("Error durante LinkedIn OAuth:", error);
+      return c.json({ error: "Authentication failed" }, 500);
+    }
+
+    return c.redirect(data.url);
+  }
+
+  static async linkedInCallback(c: Context) {
+    const code = c.req.query("code");
+    if (!code) {
+      return c.json({ error: "Code not provided" }, 400);
+    }
+
+    if (code) {
+      const supabase = config.supabaseClient;
+      const session = await supabase.auth.exchangeCodeForSession(code);
+
+      if (session.error) {
+        console.error("Error during LinkedIn callback:", session.error);
+        return c.json({ error: "Authentication failed" }, 500);
+      }
+
+      const accessToken = session.data.session.access_token;
+
+      if (accessToken) {
+        setCookie(c, "access_token", accessToken, {
+          httpOnly: true,
+          maxAge: 24 * 60 * 60,
+          sameSite: "none",
+          secure: true,
+        });
+      }
+    }
+
+    return c.redirect("https://jobgrid.app");
   }
 
   static getUser(c: Context) {
