@@ -27,6 +27,8 @@ class AuthController {
       maxAge: 24 * 60 * 60,
       sameSite: "none",
       secure: true,
+      domain: "jobgrid.app",
+      path: "/",
     });
 
     return c.json({ message: "Login successful" }, 200);
@@ -89,9 +91,11 @@ class AuthController {
   static logout(c: Context) {
     setCookie(c, "access_token", "", {
       httpOnly: true,
-      maxAge: -1,
+      maxAge: 0,
       sameSite: "none",
       secure: true,
+      domain: "jobgrid.app",
+      path: "/",
     });
 
     c.set("user", null);
