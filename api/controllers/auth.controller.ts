@@ -54,25 +54,26 @@ class AuthController {
       return c.json({ error: "Code not provided" }, 400);
     }
 
-    if (code) {
-      const supabase = config.supabaseClient;
-      const session = await supabase.auth.exchangeCodeForSession(code);
+    const supabase = config.supabaseClient;
+    const session = await supabase.auth.exchangeCodeForSession(code);
 
-      if (session.error) {
-        console.error("Error during LinkedIn callback:", session.error);
-        return c.json({ error: "Authentication failed" }, 500);
-      }
+    if (session.error) {
+      console.error("Error during LinkedIn callback:", session.error);
+      return c.json({ error: "Authentication failed" }, 500);
+    }
 
-      const accessToken = session.data.session.access_token;
+    const accessToken = session.data.session.access_token;
 
-      if (accessToken) {
-        setCookie(c, "access_token", accessToken, {
-          httpOnly: true,
-          maxAge: 24 * 60 * 60,
-          sameSite: "none",
-          secure: true,
-        });
-      }
+    if (accessToken) {
+      setCookie(c, "access_token", accessToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60,
+        sameSite: "none",
+        secure: true,
+      });
+    } else {
+      console.error("Access token not found in session data.");
+      return c.json({ error: "Authentication failed" }, 500);
     }
 
     return c.redirect("https://jobgrid.app");
