@@ -14,7 +14,7 @@ class AuthController {
       {
         email,
         password,
-      },
+      }
     );
 
     if (error) {
@@ -65,11 +65,14 @@ class AuthController {
     const accessToken = session.data.session.access_token;
 
     if (accessToken) {
+      // En linkedInCallback
       setCookie(c, "access_token", accessToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60,
         sameSite: "none",
         secure: true,
+        domain: "jobgrid.app",
+        path: "/",
       });
     } else {
       console.error("Access token not found in session data.");
