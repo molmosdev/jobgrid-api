@@ -84,6 +84,39 @@ class AuthController {
     return c.redirect("https://jobgrid.app");
   }
 
+  static async register(c: Context) {
+    const { email, password, given_name, family_name, picture } =
+      await c.req.json();
+
+    if (!email || !password || !given_name || !family_name) {
+      return c.json(
+        {
+          message: "Email, password, given name, and family name are required",
+        },
+        400
+      );
+    }
+
+    const { data, error } = await config.supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          given_name,
+          family_name,
+          picture,
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Error during registration:", error);
+      return c.json({ error: "Registration failed" }, 400);
+    }
+
+    return c.json({ message: "Registration successful", user: data.user }, 201);
+  }
+
   static getUser(c: Context) {
     return c.json(c.get("user"), 200);
   }
