@@ -7,9 +7,10 @@ import config from "@config";
  * @returns CORS middleware handler
  */
 export const cors = (): MiddlewareHandler => {
-  const allowedOrigins = config.production === "true"
-    ? ["https://www.jobgrid.app"]
-    : ["http://localhost:4200"];
+  const allowedOrigins =
+    config.production === "true"
+      ? ["https://jobgrid.app"]
+      : ["http://localhost:4200"];
 
   return honoCors({
     origin: (origin) => {
