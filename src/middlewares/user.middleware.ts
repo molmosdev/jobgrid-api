@@ -13,7 +13,7 @@ export const userMiddleware: MiddlewareHandler = async (
   if (!data?.user) {
     return c.json({
       message: "You are not logged in.",
-    });
+    }, 401);
   }
 
   c.set("user", data.user);
