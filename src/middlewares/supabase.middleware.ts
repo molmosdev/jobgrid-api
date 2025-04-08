@@ -10,6 +10,8 @@ declare module "hono" {
 }
 
 export const supabaseMiddleware: MiddlewareHandler = async (c, next) => {
+  const isLocal = c.get("domain") === "localhost";
+
   const supabase = createServerClient(
     c.env.SUPABASE_URL,
     c.env.SUPABASE_ANON_KEY,
@@ -28,10 +30,10 @@ export const supabaseMiddleware: MiddlewareHandler = async (c, next) => {
             setCookie(c, name, value, {
               ...options,
               httpOnly: true,
-              secure: true,
+              secure: isLocal ? false : true,
               sameSite: "Lax",
               path: "/",
-              domain: "jobgrid.app",
+              domain: isLocal ? undefined : "jobgrid.app",
             })
           );
         },
