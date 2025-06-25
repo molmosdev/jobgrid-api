@@ -4,3 +4,7 @@ compatibility_date = "2025-04-07"
 
 [observability.logs]
 enabled = true
+
+[[kv_namespaces]]
+binding = "VALID_DOMAINS"
+id = "acce423525c740398c05311bd2266ce7"
