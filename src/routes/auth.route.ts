@@ -1,6 +1,6 @@
 import { Context, Hono } from "hono";
 import { userMiddleware } from "../middlewares/user.middleware";
-import { getCookie } from "hono/cookie";
+import { setCookie, getCookie } from "hono/cookie";
 
 const app = new Hono();
 
@@ -28,15 +28,13 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
-  const origin = c.req.header("Origin") || "";
+
+  console.log("origin from cookie", getCookie(c, "origin"));
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
       redirectTo: c.env.LINKEDIN_REDIRECT_URI,
-      queryParams: {
-        state: encodeURIComponent(origin),
-      },
     },
   });
 
@@ -50,7 +48,8 @@ app.get("/linkedin/login", async (c: Context) => {
 
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
-  const state = c.req.query("state");
+  const origin = getCookie(c, "origin");
+
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
   }
@@ -63,9 +62,9 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  console.log("state", state);
+  console.log("origin from cookie", origin);
 
-  return c.redirect((state && decodeURIComponent(state)) || "/");
+  return c.redirect(origin || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {

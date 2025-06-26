@@ -15,6 +15,13 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
     return c.text("Forbidden (CORS)", 403);
   }
 
+  setCookie(c, "origin", origin, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "None",
+    secure: true,
+  });
+
   return cors({
     origin,
     credentials: true,
