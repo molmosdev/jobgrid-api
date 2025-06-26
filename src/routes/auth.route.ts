@@ -1,6 +1,5 @@
 import { Context, Hono } from "hono";
 import { userMiddleware } from "../middlewares/user.middleware";
-import { setCookie, getCookie } from "hono/cookie";
 
 const app = new Hono();
 
@@ -28,9 +27,9 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
-  // Codifica el hostname (o referer) en base64
   const referer = c.req.header("referer") || "";
-  const state = Buffer.from(referer).toString("base64");
+  // Codifica el referer en base64 usando btoa
+  const state = referer ? btoa(unescape(encodeURIComponent(referer))) : "";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
@@ -51,9 +50,9 @@ app.get("/linkedin/login", async (c: Context) => {
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
   const state = c.req.query("state");
-  // Decodifica el state de base64
+  // Decodifica el state de base64 usando atob
   const decodedState = state
-    ? Buffer.from(state, "base64").toString("utf-8")
+    ? decodeURIComponent(escape(atob(state)))
     : undefined;
   console.log("Decoded state (hostname):", decodedState);
 
@@ -69,7 +68,6 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  // Puedes usar decodedState para redirigir al usuario si lo necesitas
   return c.redirect(decodedState || "/");
 });
 
