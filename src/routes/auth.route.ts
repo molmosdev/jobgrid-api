@@ -1,5 +1,6 @@
 import { Context, Hono } from "hono";
 import { userMiddleware } from "../middlewares/user.middleware";
+import { setCookie, getCookie } from "hono/cookie";
 
 const app = new Hono();
 
@@ -27,67 +28,67 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
-  const referer = c.req.header("referer") || "";
-  let hostname = "";
-
-  try {
-    hostname = new URL(referer).hostname;
-  } catch (_) {
-    // mantén hostname como ""
-  }
-
-  const raw = JSON.stringify({
-    h: hostname,
-    r: crypto.randomUUID(), // aleatorio único
+  setCookie(c, "referer", c.req.header("referer") || "/", {
+    httpOnly: true,
+    secure: c.env.PRODUCTION === "false" ? false : true,
+    sameSite: "Lax",
+    path: "/",
   });
-  const urlEncoded = encodeURIComponent(raw);
-  const state = btoa(urlEncoded);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
       redirectTo: c.env.LINKEDIN_REDIRECT_URI,
-      queryParams: { state },
     },
   });
 
   if (error) {
-    console.error("Error during LinkedIn OAuth login:", error);
+    console.error("Error during LinkedIn OAuth:", error);
     return c.json({ error: "Authentication failed" }, 500);
   }
 
   return c.redirect(data.url);
 });
 
-app.get("/linkedin/callback", async (c: Context) => {
-  const code = c.req.query("code");
-  const state = c.req.query("state");
+app.get("/auth/linkedin/callback", async (c: Context) => {
+  const referer = getCookie(c, "referer");
 
-  if (!code || !state) {
-    return c.json({ error: "Missing code or state" }, 400);
+  if (!referer) {
+    return c.text("Missing referer", 400);
   }
 
-  let decoded: { h?: string; r?: string };
-  try {
-    const decodedB64 = atob(state);
-    const decodedUrl = decodeURIComponent(decodedB64);
-    decoded = JSON.parse(decodedUrl);
-  } catch (err) {
-    console.error("Invalid state format:", err);
-    return c.json({ error: "Invalid state" }, 400);
+  const code = c.req.query("code");
+  const error = c.req.query("error");
+
+  if (error || !code) {
+    return c.redirect(`${referer}?error=oauth_failed`);
+  }
+
+  const redirectUrl = new URL(referer);
+  redirectUrl.pathname = "/auth/linkedin/finalize";
+  redirectUrl.searchParams.set("code", code);
+
+  return c.redirect(redirectUrl.toString());
+});
+
+app.get("/linkedin/finalize", async (c: Context) => {
+  const code = c.req.query("code");
+  if (!code) {
+    return c.json({ error: "Code not provided" }, 400);
   }
 
   const supabase = c.get("supabase");
-  const session = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (session.error) {
-    console.error("Error during LinkedIn callback:", session.error);
+  if (error || !data.session) {
+    console.error("Error during LinkedIn callback:", error);
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  const redirectHost = decoded.h || "";
-  const redirectUrl = redirectHost ? `https://${redirectHost}` : "/";
-  return c.redirect(redirectUrl);
+  const referer = getCookie(c, "referer");
+
+  // Redirige al referer original, o a la raíz del dominio actual si no hay cookie
+  return c.redirect(referer || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
