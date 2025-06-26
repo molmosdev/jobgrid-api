@@ -51,10 +51,29 @@ app.get("/linkedin/login", async (c: Context) => {
 });
 
 app.get("/linkedin/callback", async (c: Context) => {
-  const referer = getCookie(c, "referer");
+  let referer = getCookie(c, "referer");
 
   if (!referer) {
     return c.text("Missing referer", 400);
+  }
+
+  // Lógica para ajustar el referer
+  try {
+    const url = new URL(referer);
+
+    if (
+      url.hostname === "localhost" &&
+      (url.port === "4200" || url.port === "")
+    ) {
+      url.port = "8787";
+      url.protocol = "http:";
+      referer = url.origin;
+    } else {
+      url.hostname = "api." + url.hostname.replace(/^api\./, "");
+      referer = url.origin;
+    }
+  } catch (e) {
+    return c.text("Invalid referer", 400);
   }
 
   const code = c.req.query("code");
@@ -67,7 +86,7 @@ app.get("/linkedin/callback", async (c: Context) => {
   const redirectUrl = new URL(referer);
   redirectUrl.pathname = "/auth/linkedin/finalize";
   redirectUrl.searchParams.set("code", code);
-  redirectUrl.searchParams.set("referer", referer); // ⬅️ explícitamente
+  redirectUrl.searchParams.set("referer", referer);
 
   console.log(redirectUrl.toString());
 
