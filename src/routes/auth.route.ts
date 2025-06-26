@@ -1,5 +1,6 @@
 import { Context, Hono } from "hono";
 import { userMiddleware } from "../middlewares/user.middleware";
+import { setCookie, getCookie } from "hono/cookie";
 
 const app = new Hono();
 
@@ -28,7 +29,12 @@ app.post("/login", async (c: Context) => {
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
 
-  console.log(c.req.header("host"));
+  setCookie(c, "referer", c.req.header("referer") || "/", {
+    httpOnly: true,
+    secure: c.env.PRODUCTION === "false" ? false : true,
+    sameSite: "Lax",
+    path: "/",
+  });
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
@@ -46,8 +52,6 @@ app.get("/linkedin/login", async (c: Context) => {
 });
 
 app.get("/linkedin/callback", async (c: Context) => {
-  console.log(c.req.header("origin"));
-
   const code = c.req.query("code");
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
@@ -61,7 +65,7 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect(c.env.CLIENT_STATIC_URL);
+  return c.redirect(getCookie(c, "referer") || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
