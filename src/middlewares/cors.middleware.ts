@@ -25,7 +25,7 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
     domain: isLocal ? undefined : "jobgrid.app",
   });
 
-  getCookie(c, "origin"); // Ensure the cookie is set
+  console.log(getCookie(c, "origin")); // Ensure the cookie is set
 
   return cors({
     origin,
