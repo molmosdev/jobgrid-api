@@ -19,6 +19,6 @@ app.use("*", corsMiddleware);
 app.use("*", supabaseMiddleware);
 
 // Routes
-app.route("/api/auth", auth);
+app.route("/auth", auth);
 
 export default app;
