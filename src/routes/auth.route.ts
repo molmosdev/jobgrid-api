@@ -28,11 +28,15 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
+  const origin = c.req.header("Origin") || "";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
       redirectTo: c.env.LINKEDIN_REDIRECT_URI,
+      queryParams: {
+        state: encodeURIComponent(origin),
+      },
     },
   });
 
@@ -46,22 +50,20 @@ app.get("/linkedin/login", async (c: Context) => {
 
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
+  const state = c.req.query("state");
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
   }
 
   const supabase = c.get("supabase");
-
   const session = await supabase.auth.exchangeCodeForSession(code);
-
-  console.log("la cookie", getCookie(c, "origin"));
 
   if (session.error) {
     console.error("Error during LinkedIn callback:", session.error);
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect(getCookie(c, "origin") || "/");
+  return c.redirect((state && decodeURIComponent(state)) || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
