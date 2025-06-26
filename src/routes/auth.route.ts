@@ -65,14 +65,17 @@ app.get("/auth/linkedin/callback", async (c: Context) => {
   }
 
   const redirectUrl = new URL(referer);
-  redirectUrl.pathname = "/auth/linkedin/finalize";
+  redirectUrl.pathname = "/linkedin/finalize";
   redirectUrl.searchParams.set("code", code);
+  redirectUrl.searchParams.set("referer", referer); // ⬅️ explícitamente
 
   return c.redirect(redirectUrl.toString());
 });
 
 app.get("/linkedin/finalize", async (c: Context) => {
   const code = c.req.query("code");
+  const referer = c.req.query("referer");
+
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
   }
@@ -85,9 +88,6 @@ app.get("/linkedin/finalize", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  const referer = getCookie(c, "referer");
-
-  // Redirige al referer original, o a la raíz del dominio actual si no hay cookie
   return c.redirect(referer || "/");
 });
 
