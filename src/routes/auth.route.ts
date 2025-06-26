@@ -28,7 +28,6 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
-
   setCookie(c, "referer", c.req.header("referer") || "/", {
     httpOnly: true,
     secure: c.env.PRODUCTION === "false" ? false : true,

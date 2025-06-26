@@ -10,7 +10,7 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   const hostname = new URL(origin).hostname;
   const domainMeta = await env.VALID_DOMAINS.get(hostname);
 
-  if (!domainMeta && c.env.PRODUCTION === "true") {
+  if (!domainMeta) {
     return c.text("Forbidden (CORS)", 403);
   }
 
