@@ -33,15 +33,15 @@ app.get("/linkedin/login", async (c: Context) => {
   try {
     hostname = new URL(referer).hostname;
   } catch (_) {
-    // ignore error, keep hostname as ""
+    // mantén hostname como ""
   }
 
-  const stateObj = {
+  const raw = JSON.stringify({
     h: hostname,
-    r: crypto.randomUUID(),
-  };
-
-  const state = btoa(JSON.stringify(stateObj));
+    r: crypto.randomUUID(), // aleatorio único
+  });
+  const urlEncoded = encodeURIComponent(raw);
+  const state = btoa(urlEncoded);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
@@ -52,7 +52,7 @@ app.get("/linkedin/login", async (c: Context) => {
   });
 
   if (error) {
-    console.error("Error during LinkedIn OAuth:", error);
+    console.error("Error during LinkedIn OAuth login:", error);
     return c.json({ error: "Authentication failed" }, 500);
   }
 
@@ -67,9 +67,11 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Missing code or state" }, 400);
   }
 
-  let decodedState: { h?: string; r?: string } = {};
+  let decoded: { h?: string; r?: string };
   try {
-    decodedState = JSON.parse(atob(state));
+    const decodedB64 = atob(state);
+    const decodedUrl = decodeURIComponent(decodedB64);
+    decoded = JSON.parse(decodedUrl);
   } catch (err) {
     console.error("Invalid state format:", err);
     return c.json({ error: "Invalid state" }, 400);
@@ -83,8 +85,9 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  const redirectHost = decodedState?.h || "";
-  return c.redirect(redirectHost ? `https://${redirectHost}` : "/");
+  const redirectHost = decoded.h || "";
+  const redirectUrl = redirectHost ? `https://${redirectHost}` : "/";
+  return c.redirect(redirectUrl);
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
