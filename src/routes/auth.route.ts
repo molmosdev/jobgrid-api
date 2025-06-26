@@ -28,8 +28,16 @@ app.post("/login", async (c: Context) => {
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
   const referer = c.req.header("referer") || "";
-  // Codifica el referer en base64 usando btoa
-  const state = referer ? btoa(unescape(encodeURIComponent(referer))) : "";
+  let hostname = "";
+  try {
+    if (referer) {
+      hostname = new URL(referer).hostname;
+    }
+  } catch (e) {
+    hostname = "";
+  }
+  // Codifica solo el hostname en base64 seguro para URL
+  const state = hostname ? btoa(hostname) : "";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
@@ -51,9 +59,7 @@ app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
   const state = c.req.query("state");
   // Decodifica el state de base64 usando atob
-  const decodedState = state
-    ? decodeURIComponent(escape(atob(state)))
-    : undefined;
+  const decodedState = state ? atob(state) : undefined;
   console.log("Decoded state (hostname):", decodedState);
 
   if (!code) {
