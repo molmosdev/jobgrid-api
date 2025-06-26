@@ -54,6 +54,8 @@ app.get("/linkedin/callback", async (c: Context) => {
 
   const session = await supabase.auth.exchangeCodeForSession(code);
 
+  console.log("la cookie", getCookie(c, "origin"));
+
   if (session.error) {
     console.error("Error during LinkedIn callback:", session.error);
     return c.json({ error: "Authentication failed" }, 500);
