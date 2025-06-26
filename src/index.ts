@@ -6,7 +6,7 @@ import auth from "./routes/auth.route";
 type Bindings = {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
-  CLIENT_STATIC_URL: string;
+  PRODUCTION: string;
   LINKEDIN_REDIRECT_URI: string;
 };
 
