@@ -63,6 +63,8 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
+  console.log("state", state);
+
   return c.redirect((state && decodeURIComponent(state)) || "/");
 });
 
