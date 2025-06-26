@@ -28,14 +28,15 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
+  // Codifica el hostname (o referer) en base64
+  const referer = c.req.header("referer") || "";
+  const state = Buffer.from(referer).toString("base64");
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
       redirectTo: c.env.LINKEDIN_REDIRECT_URI,
-      queryParams: {
-        state: c.req.header("referer")!,
-      },
+      queryParams: { state },
     },
   });
 
@@ -49,7 +50,12 @@ app.get("/linkedin/login", async (c: Context) => {
 
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
-  console.log(c.req.url);
+  const state = c.req.query("state");
+  // Decodifica el state de base64
+  const decodedState = state
+    ? Buffer.from(state, "base64").toString("utf-8")
+    : undefined;
+  console.log("Decoded state (hostname):", decodedState);
 
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
@@ -63,7 +69,8 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect("/");
+  // Puedes usar decodedState para redirigir al usuario si lo necesitas
+  return c.redirect(decodedState || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
