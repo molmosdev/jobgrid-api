@@ -1,6 +1,6 @@
 import { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
-import { setCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 
 export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   const origin = c.req.header("Origin");
@@ -24,6 +24,8 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
     path: "/",
     domain: isLocal ? undefined : "jobgrid.app",
   });
+
+  getCookie(c, "origin"); // Ensure the cookie is set
 
   return cors({
     origin,
