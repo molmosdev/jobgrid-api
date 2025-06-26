@@ -29,15 +29,19 @@ app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
   const referer = c.req.header("referer") || "";
   let hostname = "";
+
   try {
-    if (referer) {
-      hostname = new URL(referer).hostname;
-    }
-  } catch (e) {
-    hostname = "";
+    hostname = new URL(referer).hostname;
+  } catch (_) {
+    // ignore error, keep hostname as ""
   }
-  // Codifica solo el hostname en base64 seguro para URL
-  const state = hostname ? btoa(hostname) : "";
+
+  const stateObj = {
+    h: hostname,
+    r: crypto.randomUUID(),
+  };
+
+  const state = btoa(JSON.stringify(stateObj));
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
@@ -58,12 +62,17 @@ app.get("/linkedin/login", async (c: Context) => {
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
   const state = c.req.query("state");
-  // Decodifica el state de base64 usando atob
-  const decodedState = state ? atob(state) : undefined;
-  console.log("Decoded state (hostname):", decodedState);
 
-  if (!code) {
-    return c.json({ error: "Code not provided" }, 400);
+  if (!code || !state) {
+    return c.json({ error: "Missing code or state" }, 400);
+  }
+
+  let decodedState: { h?: string; r?: string } = {};
+  try {
+    decodedState = JSON.parse(atob(state));
+  } catch (err) {
+    console.error("Invalid state format:", err);
+    return c.json({ error: "Invalid state" }, 400);
   }
 
   const supabase = c.get("supabase");
@@ -74,7 +83,8 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect(decodedState || "/");
+  const redirectHost = decodedState?.h || "";
+  return c.redirect(redirectHost ? `https://${redirectHost}` : "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
