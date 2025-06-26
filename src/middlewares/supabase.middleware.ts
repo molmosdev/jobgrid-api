@@ -10,7 +10,7 @@ declare module "hono" {
 }
 
 export const supabaseMiddleware: MiddlewareHandler = async (c, next) => {
-  const isLocal = c.get("domain") === "localhost";
+  const isLocal = c.env.PRODUCTION === "false";
 
   const supabase = createServerClient(
     c.env.SUPABASE_URL,
