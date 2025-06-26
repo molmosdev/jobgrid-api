@@ -31,7 +31,7 @@ export const supabaseMiddleware: MiddlewareHandler = async (c, next) => {
               ...options,
               httpOnly: true,
               secure: isLocal ? false : true,
-              sameSite: "Lax",
+              sameSite: "None",
               path: "/",
               domain: isLocal ? undefined : "jobgrid.app",
             })
