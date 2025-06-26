@@ -60,7 +60,7 @@ The following environment variables are required:
 
 - `SUPABASE_URL`: Your Supabase project URL.
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key.
-- `CLIENT_STATIC_URL`: The URL of your frontend client.
+- `PRODUCTION`: Whether the environment is production (set to `true` or `false`).
 - `LINKEDIN_REDIRECT_URI`: The redirect URI for LinkedIn authentication.
 
 ## Project Structure
