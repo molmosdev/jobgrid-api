@@ -15,11 +15,14 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
     return c.text("Forbidden (CORS)", 403);
   }
 
+  const isLocal = c.env.PRODUCTION === "false";
+
   setCookie(c, "origin", origin, {
-    path: "/",
     httpOnly: true,
-    sameSite: c.env.PRODUCTION === "true" ? "None" : "Lax",
-    secure: c.env.PRODUCTION === "true",
+    secure: isLocal ? false : true,
+    sameSite: "Lax",
+    path: "/",
+    domain: isLocal ? undefined : "jobgrid.app",
   });
 
   return cors({
