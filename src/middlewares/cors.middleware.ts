@@ -18,8 +18,8 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   setCookie(c, "origin", origin, {
     path: "/",
     httpOnly: true,
-    sameSite: "None",
-    secure: true,
+    sameSite: c.env.PRODUCTION === "true" ? "None" : "Lax",
+    secure: c.env.PRODUCTION === "true",
   });
 
   return cors({
