@@ -28,17 +28,14 @@ app.post("/login", async (c: Context) => {
 
 app.get("/linkedin/login", async (c: Context) => {
   const supabase = c.get("supabase");
-  setCookie(c, "referer", c.req.header("referer") || "/", {
-    httpOnly: true,
-    secure: c.env.PRODUCTION === "false" ? false : true,
-    sameSite: "Lax",
-    path: "/",
-  });
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "linkedin_oidc",
     options: {
       redirectTo: c.env.LINKEDIN_REDIRECT_URI,
+      queryParams: {
+        state: c.req.header("referer")!,
+      },
     },
   });
 
@@ -52,6 +49,8 @@ app.get("/linkedin/login", async (c: Context) => {
 
 app.get("/linkedin/callback", async (c: Context) => {
   const code = c.req.query("code");
+  console.log(c.req.url);
+
   if (!code) {
     return c.json({ error: "Code not provided" }, 400);
   }
@@ -64,7 +63,7 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect(getCookie(c, "referer") || "/");
+  return c.redirect("/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
