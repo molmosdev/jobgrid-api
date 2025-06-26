@@ -1,6 +1,5 @@
 import { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
-import { getCookie, setCookie } from "hono/cookie";
 
 export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   const origin = c.req.header("Origin");
@@ -14,18 +13,6 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   if (!domainMeta && c.env.PRODUCTION === "true") {
     return c.text("Forbidden (CORS)", 403);
   }
-
-  const isLocal = c.env.PRODUCTION === "false";
-
-  setCookie(c, "origin", origin, {
-    httpOnly: true,
-    secure: isLocal ? false : true,
-    sameSite: "Lax",
-    path: "/",
-    domain: isLocal ? undefined : "jobgrid.app",
-  });
-
-  console.log(getCookie(c, "origin")); // Ensure the cookie is set
 
   return cors({
     origin,
