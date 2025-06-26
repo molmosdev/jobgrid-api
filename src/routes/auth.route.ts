@@ -1,5 +1,6 @@
 import { Context, Hono } from "hono";
 import { userMiddleware } from "../middlewares/user.middleware";
+import { getCookie } from "hono/cookie";
 
 const app = new Hono();
 
@@ -58,7 +59,7 @@ app.get("/linkedin/callback", async (c: Context) => {
     return c.json({ error: "Authentication failed" }, 500);
   }
 
-  return c.redirect(c.env.CLIENT_STATIC_URL);
+  return c.redirect(getCookie(c, "origin") || "/");
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
