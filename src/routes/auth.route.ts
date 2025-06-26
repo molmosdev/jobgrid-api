@@ -50,7 +50,7 @@ app.get("/linkedin/login", async (c: Context) => {
   return c.redirect(data.url);
 });
 
-app.get("/auth/linkedin/callback", async (c: Context) => {
+app.get("/linkedin/callback", async (c: Context) => {
   const referer = getCookie(c, "referer");
 
   if (!referer) {
