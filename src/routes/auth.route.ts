@@ -65,9 +65,11 @@ app.get("/linkedin/callback", async (c: Context) => {
   }
 
   const redirectUrl = new URL(referer);
-  redirectUrl.pathname = "/linkedin/finalize";
+  redirectUrl.pathname = "/auth/linkedin/finalize";
   redirectUrl.searchParams.set("code", code);
   redirectUrl.searchParams.set("referer", referer); // ⬅️ explícitamente
+
+  console.log(redirectUrl.toString());
 
   return c.redirect(redirectUrl.toString());
 });
