@@ -51,7 +51,8 @@ app.get("/linkedin/login", async (c: Context) => {
 });
 
 app.get("/linkedin/callback", async (c: Context) => {
-  let referer = getCookie(c, "referer");
+  const referer = getCookie(c, "referer");
+  let finalizeUrl = '';
 
   if (!referer) {
     return c.text("Missing referer", 400);
@@ -67,10 +68,10 @@ app.get("/linkedin/callback", async (c: Context) => {
     ) {
       url.port = "8787";
       url.protocol = "http:";
-      referer = url.origin;
+      finalizeUrl = url.origin;
     } else {
       url.hostname = "api." + url.hostname.replace(/^api\./, "");
-      referer = url.origin;
+      finalizeUrl = url.origin;
     }
   } catch (e) {
     return c.text("Invalid referer", 400);
@@ -80,10 +81,10 @@ app.get("/linkedin/callback", async (c: Context) => {
   const error = c.req.query("error");
 
   if (error || !code) {
-    return c.redirect(`${referer}?error=oauth_failed`);
+    return c.redirect(`${finalizeUrl}?error=oauth_failed`);
   }
 
-  const redirectUrl = new URL(referer);
+  const redirectUrl = new URL(finalizeUrl);
   redirectUrl.pathname = "/auth/linkedin/finalize";
   redirectUrl.searchParams.set("code", code);
   redirectUrl.searchParams.set("referer", referer);
