@@ -52,13 +52,12 @@ app.get("/linkedin/login", async (c: Context) => {
 
 app.get("/linkedin/callback", async (c: Context) => {
   const referer = getCookie(c, "referer");
-  let finalizeUrl = '';
+  let finalizeUrl = "";
 
   if (!referer) {
     return c.text("Missing referer", 400);
   }
 
-  // Lógica para ajustar el referer
   try {
     const url = new URL(referer);
 
@@ -70,7 +69,10 @@ app.get("/linkedin/callback", async (c: Context) => {
       url.protocol = "http:";
       finalizeUrl = url.origin;
     } else {
-      url.hostname = "api." + url.hostname.replace(/^api\./, "");
+      // Si ya empieza por api., no lo añade de nuevo
+      if (!url.hostname.startsWith("api.")) {
+        url.hostname = "api." + url.hostname;
+      }
       finalizeUrl = url.origin;
     }
   } catch (e) {
