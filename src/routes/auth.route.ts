@@ -100,12 +100,11 @@ app.get("/logout", (c: Context) => {
   // Build Auth0 logout URL
   const protocol = c.req.header("x-forwarded-proto") || "http";
   let host = c.req.header("x-forwarded-host") || c.req.header("host") || "";
-  if (!isLocal && host.startsWith("api.")) {
-    host = host.replace(/^api\./, "");
-  }
+  console.log("Host:", host);
+  console.log(host.replace(/^api\./, ""));
   const returnTo = isLocal
     ? "http://localhost:4200/"
-    : `${protocol}://${host}/`;
+    : `${protocol}://${host.replace(/^api\./, "")}/`;
   const logoutUrl = new URL(`https://${c.env.AUTH0_DOMAIN}/v2/logout`);
   logoutUrl.searchParams.set("client_id", c.env.AUTH0_CLIENT_ID);
   logoutUrl.searchParams.set("returnTo", returnTo);
