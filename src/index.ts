@@ -5,9 +5,12 @@ import auth from "./routes/auth.route";
 
 type Bindings = {
   SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
+  SUPABASE_SECRET_KEY: string;
+  AUTH0_DOMAIN: string;
+  AUTH0_CLIENT_ID: string;
+  AUTH0_CLIENT_SECRET: string;
   PRODUCTION: string;
-  LINKEDIN_REDIRECT_URI: string;
+  COOKIE_SECRET: string
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
