@@ -73,7 +73,7 @@ app.get("/linkedin/callback", async (c: Context) => {
 
   const returnTo = isLocal
     ? "http://localhost:4200/"
-    : `${protocol}://${host}/`;
+    : `${protocol}://${host?.replace(/^api\./, "")}/`;
 
   return c.redirect(returnTo, 302);
 });
