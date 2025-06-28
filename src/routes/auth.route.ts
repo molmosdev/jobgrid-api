@@ -71,7 +71,11 @@ app.get("/linkedin/callback", async (c: Context) => {
     maxAge: 2 * 60 * 60,
   });
 
-  return c.redirect("http://localhost:4200/", 302);
+  const returnTo = isLocal
+    ? "http://localhost:4200/"
+    : `${protocol}://${host}/`;
+
+  return c.redirect(returnTo, 302);
 });
 
 app.get("/user", userMiddleware, async (c: Context) => {
