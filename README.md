@@ -59,9 +59,12 @@ Ensure you are authenticated with the Cloudflare CLI (`wrangler`) and have the n
 The following environment variables are required:
 
 - `SUPABASE_URL`: Your Supabase project URL.
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key.
+- `SUPABASE_SECRET_KEY`: Your Supabase service role secret key.
+- `AUTH0_DOMAIN`: Your Auth0 domain.
+- `AUTH0_CLIENT_ID`: Your Auth0 client ID.
+- `AUTH0_CLIENT_SECRET`: Your Auth0 client secret.
 - `PRODUCTION`: Whether the environment is production (set to `true` or `false`).
-- `LINKEDIN_REDIRECT_URI`: The redirect URI for LinkedIn authentication.
+- `COOKIE_SECRET`: Secret used for signing cookies.
 
 ## Project Structure
 
