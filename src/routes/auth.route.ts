@@ -90,7 +90,6 @@ app.get("/user", userMiddleware, async (c: Context) => {
 
 app.get("/logout", (c: Context) => {
   const isLocal = c.env.PRODUCTION === "false";
-  // Clear session cookie
   setCookie(c, "session", "", {
     httpOnly: true,
     secure: !isLocal,
@@ -100,7 +99,10 @@ app.get("/logout", (c: Context) => {
 
   // Build Auth0 logout URL
   const protocol = c.req.header("x-forwarded-proto") || "http";
-  const host = c.req.header("x-forwarded-host") || c.req.header("host");
+  let host = c.req.header("x-forwarded-host") || c.req.header("host") || "";
+  if (!isLocal && host.startsWith("api.")) {
+    host = host.replace(/^api\./, "");
+  }
   const returnTo = isLocal
     ? "http://localhost:4200/"
     : `${protocol}://${host}/`;
